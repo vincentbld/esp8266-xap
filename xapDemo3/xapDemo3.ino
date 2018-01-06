@@ -28,6 +28,30 @@ const char TEMPLATE[] PROGMEM =
   "tempF=%d\n"
   "humidity=%d\n"
   "}";
+  
+void readSensor() {
+    float h = dht.readHumidity();
+    // Read temperature as Celsius (the default)
+    float t = dht.readTemperature();
+    // Read temperature as Fahrenheit (isFahrenheit = true)
+    float f = dht.readTemperature(true);
+    
+    // Check if any reads failed and exit early.
+    if (isnan(h) || isnan(t) || isnan(f)) {
+      Serial.println("Failed to read from DHT sensor!");
+      return;
+    }
+    
+    char response[200];
+    // sprintf does not do %f (workaround).  tempC we want 1 decimal of precision.
+    // Yeah I know the DHT11 can't do that resolution it makes the code ready for the DHT22/21 :)
+    sprintf_P(response, TEMPLATE, uid, source,
+              (int)t,
+              (int)(t * 10 - (((int)t) * 10)),
+              (int)f,
+              (int)h);
+    xap.xapSend(response);
+}
 
 void setup() {
   Serial.begin(115200);
@@ -42,31 +66,10 @@ void setup() {
   }
 
   dht.begin();
-
-  xap.timedEvent(60000, [&]() {
-    float h = dht.readHumidity();
-    // Read temperature as Celsius (the default)
-    float t = dht.readTemperature();
-    // Read temperature as Fahrenheit (isFahrenheit = true)
-    float f = dht.readTemperature(true);
-
-    // Check if any reads failed and exit early.
-    if (isnan(h) || isnan(t) || isnan(f)) {
-      Serial.println("Failed to read from DHT sensor!");
-      return;
-    }
-
-    char response[200];
-    // sprintf does not do %f (workaround).  tempC we want 1 decimal of precision.
-    // Yeah I know the DHT11 can't do that resolution it makes the code ready for the DHT22/21 :)
-    sprintf_P(response, TEMPLATE, uid, source,
-              (int)t,
-              (int)(t * 10 - (((int)t) * 10)),
-              (int)f,
-              (int)h);
-    xap.xapSend(response);
-  });
+  readSensor(); // Now
+  xap.timedEvent(60000, [&]() { readSensor(); }); // and every 60s  
 }
+
 void loop() {
   xap.handle();
 }

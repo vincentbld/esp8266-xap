@@ -155,7 +155,7 @@ void Bsc::onCmd(void (*CB)(Bsc *)) {
 
 void Bsc::_infoEvent(BscInfoEvent ie) {
   const char *ioString = io == BscDirection::Output ? "output" : "input";
-  const char *clazz = ie == BscInfoEvent::Info ? "info" : "event";
+  const char *clazz = ie == BscInfoEvent::Info ? "xAPBSC.info" : "xAPBSC.event";
 
   char buff[XAP_DATA_LEN];
   int len = snprintf(buff, XAP_DATA_LEN, "xap-header\n"

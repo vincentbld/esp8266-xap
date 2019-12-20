@@ -17,7 +17,7 @@ Xap::Xap(const char *source, const char *uid )
 
   // Start UDP server on STA connection
   _handler = WiFi.onStationModeGotIP([this, heartbeatTimer](WiFiEventStationModeGotIP ipInfo) {
-    _broadcastIP = ~WiFi.subnetMask() | WiFi.gatewayIP();
+    _broadcastIP = IPAddress(~(uint32_t)WiFi.subnetMask() | (uint32_t)WiFi.gatewayIP());
     _udp.begin(XAP_PORT);
 #ifdef XAP_DEBUG
     Serial.println("xAP UDP listener started");

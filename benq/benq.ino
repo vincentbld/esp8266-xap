@@ -37,7 +37,7 @@ class Benq {
     void handle() {
       switch (state) {
         case IDLE:
-          // Whilst idle drain the Rx buffer. Shouldn't be anything in there.
+          // Whilst idle drain the Rx buffer.
           while (Serial.available()) {
             Serial.read();
           }
@@ -72,8 +72,12 @@ class Benq {
           Serial.write('*');
           Serial.write(action);
           Serial.write("#\r");
-          state = RESPONSE;
-          now = millis();
+          if (_connected) { // telnet client?  Show response data.
+            state = RESPONSE;
+            now = millis();
+          } else {
+            state = IDLE;
+          }
           break;
 
         case RESPONSE:
@@ -83,7 +87,8 @@ class Benq {
             debugChar('\n');
           } else
             while (Serial.available()) {
-              debugChar(Serial.read());
+              char c = Serial.read(); // drain even if the client disconnects midway.
+              debugChar(c);
             }
           break;
       }
